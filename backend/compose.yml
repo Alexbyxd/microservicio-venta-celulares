@@ -1,0 +1,34 @@
+services:
+  rabbit-server:
+    image: rabbitmq:latest
+    container_name: rabbit-server
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - microservicios
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=pass
+    volumes:
+      - rabbitmq_data_micro_2:/var/lib/rabbitmq
+  auth_db:
+    image: postgres:16.2
+    container_name: auth-db
+    environment:
+      - POSTGRES_DB=auth
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - auth-db-data_micro_2:/var/lib/postgresql/data
+    networks:
+      - microservicios
+
+networks:
+  microservicios:
+
+volumes:
+  auth-db-data_micro_2:
+  rabbitmq_data_micro_2:

@@ -1,0 +1,8 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "backend/AGENT.md",
+    "frontend/AGENT.md",
+    "INSTRUCCIÓN AUTOMÁTICA: Después de completar cualquier cambio significativo en el código (nueva funcionalidad, refactorización, cambio de arquitectura), DEBES actualizar automáticamente la fuente de verdad correspondiente. Para backend/AGENT.md: agregar entrada en 'Registro de Cambios Mayores' con fecha actual, cambio y descripción. Para frontend/AGENT.md: documentar en 'Mantenimiento de la Fuente de Verdad' si cambia la arquitectura."
+  ]
+}
