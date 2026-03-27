@@ -23,7 +23,8 @@ import {
   FieldGroup,
 } from "@/components/ui/field";
 import { apiClient } from "@/lib/api-client";
-import { AuthResponse, User } from "@/types/auth";
+import { AuthResponse } from "@/types/auth";
+import { useAuth } from "./providers/AuthContext";
 
 const registerSchema = z.object({
   firstName: z.string().min(1, "El nombre es requerido"),
@@ -37,14 +38,26 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 interface RegisterModalProps {
   children: React.ReactNode;
-  onRegisterSuccess?: (token: string, user: User) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function RegisterModal({ children, onRegisterSuccess }: RegisterModalProps) {
+export function RegisterModal({ children, open: externalOpen, onOpenChange: externalOnOpenChange }: RegisterModalProps) {
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const isControlled = externalOpen !== undefined;
+  const isOpen = isControlled ? externalOpen : internalOpen;
+  const setOpen = (value: boolean) => {
+    if (isControlled) {
+      externalOnOpenChange?.(value);
+    } else {
+      setInternalOpen(value);
+    }
+  };
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -65,9 +78,7 @@ export function RegisterModal({ children, onRegisterSuccess }: RegisterModalProp
       const response = await apiClient.post<AuthResponse>("/api/auth/register", data);
       const { token, user } = response.data;
 
-      if (onRegisterSuccess) {
-        onRegisterSuccess(token, user);
-      }
+      login(token, user);
 
       setOpen(false);
       form.reset();
@@ -84,7 +95,7 @@ export function RegisterModal({ children, onRegisterSuccess }: RegisterModalProp
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[450px] border border-white/10 bg-black/60 px-8 py-10 backdrop-blur-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden">
         <motion.div

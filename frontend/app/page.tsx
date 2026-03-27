@@ -1,11 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 
 import { LoginModal } from "@/components/LoginModal";
 import { RegisterModal } from "@/components/RegisterModal";
+import { AccountMenu } from "@/components/AccountMenu";
 
 export default function Home() {
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
+
   const navLinks = [
     "Comenzar",
     "Desarrolladores",
@@ -76,31 +81,18 @@ export default function Home() {
           transition={{ duration: 0.5, delay: 0.6 }}
           className="flex justify-end gap-3 md:gap-4 shrink-0"
         >
-          <LoginModal>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="group relative overflow-hidden whitespace-nowrap rounded-full border-[0.6px] border-white/50 bg-black/50 backdrop-blur-md px-[18px] md:px-[29px] py-[8px] md:py-[11px] shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all hover:border-white hover:bg-black hover:shadow-[0_0_25px_rgba(255,255,255,0.2)] shrink-0"
-            >
-              <div className="absolute -top-[4px] left-1/2 h-[12px] w-[60%] -translate-x-1/2 rounded-full bg-white opacity-60 blur-xs transition-opacity group-hover:opacity-90" />
-              <span className="relative z-10 text-[12px] md:text-[14px] font-medium text-white">
-                Iniciar sesión
-              </span>
-            </motion.button>
+          <LoginModal open={loginOpen} onOpenChange={setLoginOpen}>
+            <div className="hidden" />
           </LoginModal>
 
-          <RegisterModal>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="group hidden sm:block whitespace-nowrap shrink-0 relative overflow-hidden rounded-full border-[0.6px] border-transparent bg-white px-[20px] md:px-[29px] py-[10px] md:py-[11px] outline-none transition-transform hover:scale-105 active:scale-95"
-            >
-              <div className="absolute top-0 left-1/2 h-[8px] w-[50%] -translate-x-1/2 rounded-full bg-white drop-shadow-[0_0_8px_rgba(255,255,255,1)]" />
-              <span className="relative z-10 text-[13px] md:text-[14px] font-bold text-black">
-                Registrarse
-              </span>
-            </motion.button>
+          <RegisterModal open={registerOpen} onOpenChange={setRegisterOpen}>
+            <div className="hidden" />
           </RegisterModal>
+
+          <AccountMenu
+            onLoginClick={() => setLoginOpen(true)}
+            onRegisterClick={() => setRegisterOpen(true)}
+          />
         </motion.div>
       </motion.header>
 
