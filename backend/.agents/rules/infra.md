@@ -55,3 +55,50 @@ services:
 ## Persistencia
 - **Prisma ORM**: Cada microservicio debe tener su propia instancia de Prisma. NUNCA compartas el `schema.prisma` entre microservicios.
 - **RabbitMQ**: Centralizado en el servicio `rabbit-server`. Todos los microservicios se conectan a este broker.
+
+## ⚠️ MongoDB y Versiones
+
+**IMPORTANTE**: Usar siempre `mongo:7.0` en lugar de `mongo:latest`.
+
+### Por qué no usar mongo:latest
+
+MongoDB 8.x tiene bugs conocidos con kernels Linux modernos (incluyendo Fedora 40+). El contenedor puede iniciar correctamente pero luego crashear con error código de salida **139** (segmentation fault) o **62** (shutdown por datos corruptos).
+
+### Síntomas del problema
+
+- Contenedor inicia correctamente (logs muestran "mongod startup complete")
+- Minutos después el contenedor se detiene solo
+- Error `podman ps -a` muestra status "Exited (139)"
+
+### Solución
+
+```yaml
+catalog-db:
+  image: mongo:7.0  # NO usar mongo:latest
+```
+
+Si ya tienes datos con mongo:latest y quieres migrar a 7.0:
+
+```bash
+# Eliminar volumen existente (perdemos datos)
+podman rm -f catalog-db
+podman volume rm <nombre-del-volumen>
+podman compose up -d catalog-db
+```
+
+### Ejemplo de configuración MongoDB
+
+```yaml
+catalog-db:
+  image: mongo:7.0
+  container_name: catalog-db
+  ports:
+    - "27017:27017"
+  environment:
+    - MONGO_INITDB_ROOT_USERNAME=admin
+    - MONGO_INITDB_ROOT_PASSWORD=admin
+  volumes:
+    - catalog_db_data:/data/db
+  networks:
+    - microservicios
+```

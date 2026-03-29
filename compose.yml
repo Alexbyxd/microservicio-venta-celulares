@@ -1,0 +1,134 @@
+services:
+  # ==========================================
+  # SERVICES DE INFRAESTRUCTURA
+  # ==========================================
+  rabbit-server:
+    image: rabbitmq:latest
+    container_name: rabbit-server
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - microservicios
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=pass
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  auth-db:
+    image: postgres:16.2
+    container_name: auth-db
+    environment:
+      - POSTGRES_DB=auth
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    networks:
+      - microservicios
+
+  catalog-db:
+    image: mongo:7.0
+    container_name: catalog-db
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+    volumes:
+      - catalog_db_data:/data/db
+    networks:
+      - microservicios
+
+  # ==========================================
+  # MICROSERVICIOS
+  # ==========================================
+  auth-ms:
+    image: node:22
+    container_name: auth-ms
+    working_dir: /usr/src/app
+    volumes:
+      - ./backend/auth-ms:/usr/src/app
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - RABBITMQ_HOST=amqp://user:pass@rabbit-server:5672
+      - DATABASE_URL=postgresql://admin:admin@auth-db:5432/auth?schema=public
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+    networks:
+      - microservicios
+    command: sh -c "npm install && npm run start:dev"
+    depends_on:
+      - rabbit-server
+      - auth-db
+
+  catalog-ms:
+    image: node:22
+    container_name: catalog-ms
+    working_dir: /usr/src/app
+    volumes:
+      - ./backend/catalog-ms:/usr/src/app
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - RABBITMQ_HOST=amqp://user:pass@rabbit-server:5672
+      - DATABASE_URL=mongodb://admin:admin@catalog-db:27017/catalog_db?authSource=admin
+    networks:
+      - microservicios
+    command: sh -c "npm install && npm run start:dev"
+    depends_on:
+      - rabbit-server
+      - catalog-db
+
+  client-gateway:
+    image: node:22
+    container_name: client-gateway
+    working_dir: /usr/src/app
+    volumes:
+      - ./backend/client-gateway:/usr/src/app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - RABBITMQ_HOST=amqp://user:pass@rabbit-server:5672
+    networks:
+      - microservicios
+    command: sh -c "npm install && npm run start:dev"
+    depends_on:
+      - rabbit-server
+      - auth-ms
+      - catalog-ms
+
+  frontend:
+    image: node:22
+    container_name: frontend
+    working_dir: /usr/src/app
+    volumes:
+      - ./frontend:/usr/src/app
+    ports:
+      - "3010:3010"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:3000/api
+    networks:
+      - microservicios
+    command: sh -c "npm install && npm run dev"
+    depends_on:
+      - client-gateway
+
+networks:
+  microservicios:
+    driver: bridge
+
+volumes:
+  rabbitmq_data:
+  auth_db_data:
+  catalog_db_data:

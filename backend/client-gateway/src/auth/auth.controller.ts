@@ -1,8 +1,19 @@
-import { Controller, Post, Get, Body, Param, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Param,
+  UsePipes,
+  ValidationPipe,
+  UseFilters,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto, LoginDto, LoginGoogleDto } from './dto/auth.dto';
+import { RpcExceptionFilter } from '../filters/rpc-exception.filter';
 
 @Controller('auth')
+@UseFilters(RpcExceptionFilter)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

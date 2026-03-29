@@ -27,21 +27,25 @@ Para detalles específicos, consulta los módulos especializados en `@backend/.a
 
 _Cualquier adición de microservicios, nuevos endpoints globales o cambios en el stack debe registrarse aquí._
 
-| Fecha      | Cambio                 | Descripción                                                    |
-| :--------- | :--------------------- | :------------------------------------------------------------- |
-| 2026-03-12 | Init Project           | Estructura inicial:`client-gateway` y `auth-ms`.               |
-| 2026-03-12 | Rules Engine           | Implementación de la Fuente de Verdad modular.                 |
-| 2026-03-12 | Context Auto-discovery | Renombrado de `backend.md` a `GEMINI.md` en `/backend`.        |
-| 2026-03-14 | Módulo Auth            | Implementación de login y registro con JWT, bcrypt y RabbitMQ. |
-| 2026-03-14 | RabbitMQ Integration   | Actualizado client-gateway para usar `ClientsModule` de NestJS en lugar de implementación manual. |
+| Fecha      | Cambio                 | Descripción                                                                                                   |
+| :--------- | :--------------------- | :------------------------------------------------------------------------------------------------------------- |
+| 2026-03-12 | Init Project           | Estructura inicial:`client-gateway` y `auth-ms`.                                                           |
+| 2026-03-12 | Rules Engine           | Implementación de la Fuente de Verdad modular.                                                                |
+| 2026-03-12 | Context Auto-discovery | Renombrado de `backend.md` a `GEMINI.md` en `/backend`.                                                  |
+| 2026-03-14 | Módulo Auth           | Implementación de login y registro con JWT, bcrypt y RabbitMQ.                                                |
+| 2026-03-14 | RabbitMQ Integration   | Actualizado client-gateway para usar `ClientsModule` de NestJS en lugar de implementación manual.           |
 | 2026-03-14 | Manejo de Errores      | Implementación de `RmqExceptionFilter` para propagar mensajes de error correctamente a través de RabbitMQ. |
+| 2026-03-29 | MongoDB Integration   | Agregado MongoDB 7.0 como base de datos para catalog-ms. Actualización de compose.yml con catalog-db. |
+| 2026-03-29 | catalog-ms           | Nuevo microservicio con NestJS + MongoDB para gestión de productos. |
+| 2026-03-29 | Catalog Gateway       | Nuevo módulo CatalogModule en client-gateway para exponer API de productos via RabbitMQ. |
+| 2026-03-29 | RpcExceptionFilter    | Nuevo filtro de excepciones en client-gateway para manejo de errores de microservicios. |
 
 ## 🛠️ Stack Tecnológico
 
 - **Framework**: [NestJS](https://nestjs.com/) (v10+)
 - **Lenguaje**: TypeScript
 - **Comunicación**: RabbitMQ (Transporte RMQ)
-- **Persistencia**: PostgreSQL (v16.2) con Prisma ORM
+- **Persistencia**: PostgreSQL (v16.2) con Prisma ORM + MongoDB (v7.0)
 - **Entorno**: Podman Compose (Dev Mode - Images only)
 - **Documentación**: Swagger / OpenAPI
 - **Testing**: Jest
@@ -54,22 +58,23 @@ RabbitMQ es un message broker (corredor de mensajes) que implementa el protocolo
 ### Cómo funciona en nuestra arquitectura:
 
 1. **Flujo de comunicación**:
+
    - El **Client Gateway** recibe una petición HTTP del frontend (ej: `POST /api/auth/login`)
    - El Gateway transforma esta petición en un mensaje RabbitMQ y lo envía a una cola específica (`auth_queue`)
    - El **Auth Microservice** está escuchando esa cola, procesa la lógica de negocio
    - El microservicio devuelve la respuesta a través de la misma conexión
    - El Gateway transforma la respuesta RabbitMQ y la devuelve al cliente
-
 2. **Componentes clave**:
+
    - **Queue (Cola)**: Canal donde se almacenan los mensajes temporalmente. En nuestro caso: `auth_queue`
    - **Exchange**: Decide cómo distribuir los mensajes a las colas
    - **Message**: Contiene los datos (pattern + data) con metadatos (correlationId)
-
 3. **Patrón Request-Response**:
+
    - Usamos `correlationId` para vincular solicitud con respuesta
    - El cliente espera la respuesta con el mismo correlationId
-
 4. **Configuración en el proyecto**:
+
    - **Emisor (Gateway)**: `src/auth/auth.module.ts` con `ClientsModule` - Usa `ClientProxy` de NestJS para enviar mensajes
    - **Receptor (Microservicio)**: `main.ts` con `Transport.RMQ` - Escucha la cola con `@MessagePattern`
 
@@ -121,29 +126,114 @@ podman compose logs -f auth_db
 El `RmqExceptionFilter` (`auth-ms/src/filters/rmq-exception.filter.ts`) es un filtro global de excepciones diseñado específicamente para microservicios RabbitMQ en NestJS.
 
 **¿Por qué es necesario?**
+
 - Los microservicios RabbitMQ no devuelven respuestas HTTP estándar
 - Cuando ocurre una excepción en el microservicio, NestJS lanza un error que debe ser serializado
 - Sin este filtro, el gateway recibe un error genérico y no puede extraer el mensaje
 
 **Cómo funciona:**
 
-1. **Captura de excepciones**: El filtro intercepta cualquier excepción (`@Catch()`)
-2. **Extracción del mensaje**: 
+1. **AuthCaptura de excepciones**: El filtro intercepta cualquier excepción (`@Catch()`)
+2. **Extracción del mensaje**:
    - Si es `HttpException`, extrae el status y mensaje
    - Si es `Error` genérico, usa el mensaje
    - otherwise, usa "Internal server error"
 3. **Serialización**: Devuelve un objeto `{ statusCode, message }` que el gateway puede leer
 
 **Configuración en main.ts**:
+
 ```typescript
 app.useGlobalFilters(new RmqExceptionFilter());
 ```
 
 **En el Gateway**: Se extrae el mensaje así:
+
 ```typescript
 catch (error: any) {
   const message = error.message?.message || error.message;
   throw new HttpException(message, HttpStatus.UNAUTHORIZED);
+}
+```
+
+---
+
+## 📦 Servicios del Sistema
+
+### compose.yml - Arquitectura de Microservicios
+
+El archivo `compose.yml` define la infraestructura completa del proyecto:
+
+```yaml
+services:
+  # INFRAESTRUCTURA
+  rabbit-server:    # Message broker (RabbitMQ)
+  auth-db:         # PostgreSQL (auth-ms)
+  catalog-db:      # MongoDB 7.0 (catalog-ms)
+
+  # MICROSERVICIOS
+  auth-ms:         # NestJS - Autenticación
+  catalog-ms:     # NestJS - Catálogo de productos
+  client-gateway:  # NestJS - API Gateway
+  frontend:        # Next.js
+```
+
+### catalog-ms (Microservicio de Catálogo)
+
+Nuevo microservicio NestJS con MongoDB para gestión de productos:
+
+- **Tecnología**: NestJS + Mongoose + RabbitMQ
+- **Puerto**: 3002
+- **Base de datos**: MongoDB 7.0 (catalog-db)
+- **Cola RabbitMQ**: `catalog_queue`
+
+**Estructura:**
+```
+catalog-ms/src/
+├── main.ts                    # Entry point con Transport.RMQ
+├── app.module.ts
+├── config/envs.ts
+├── database/                  # Conexión MongoDB
+│   ├── db.module.ts
+│   └── db.providers.ts
+├── products/                  # Módulo de productos
+│   ├── products.controller.ts # @MessagePattern handlers
+│   ├── products.service.ts
+│   ├── products.module.ts
+│   ├── dto/product.dto.ts
+│   ├── schemas/product.schema.ts
+│   └── product.providers.ts
+└── filters/
+    └── rmq-exception.filter.ts
+```
+
+### CatalogModule (Gateway)
+
+Módulo en client-gateway que conecta con catalog-ms via RabbitMQ:
+
+```typescript
+// catalog.module.ts
+ClientsModule.register([
+  {
+    name: 'CATALOG_SERVICE',
+    transport: Transport.RMQ,
+    options: {
+      urls: [envs.rabbitmqHost],
+      queue: 'catalog_queue',
+      queueOptions: { durable: true },
+    },
+  },
+])
+```
+
+### RpcExceptionFilter (Gateway)
+
+Filtro global para manejar errores de microservicios:
+
+```typescript
+// rpc-exception.filter.ts
+catch (error: any) {
+  const message = error.message?.message || error.message;
+  throw new HttpException(message, HttpStatus.BAD_REQUEST);
 }
 ```
 
