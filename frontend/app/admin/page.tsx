@@ -1,12 +1,27 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DeviceMobile, Users, Car, CurrencyDollar } from "@phosphor-icons/react";
+import { Smartphone, Users, ShoppingCart, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const stats = [
-  { title: "Productos", value: "124", icon: DeviceMobile, color: "text-blue-500" },
+  {
+    title: "Productos",
+    value: "124",
+    icon: Smartphone,
+    color: "text-blue-500",
+  },
   { title: "Usuarios", value: "56", icon: Users, color: "text-green-500" },
-  { title: "Pedidos", value: "89", icon: Car, color: "text-orange-500" },
-  { title: "Ingresos", value: "$12,450", icon: CurrencyDollar, color: "text-purple-500" },
+  {
+    title: "Pedidos",
+    value: "89",
+    icon: ShoppingCart,
+    color: "text-orange-500",
+  },
+  {
+    title: "Ingresos",
+    value: "$12,450",
+    icon: DollarSign,
+    color: "text-purple-500",
+  },
 ];
 
 export default function AdminPage() {
@@ -20,7 +35,7 @@ export default function AdminPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
-              <stat.icon className={cn(stat.color, "size-5")} weight="bold" />
+              <stat.icon className={cn(stat.color, "size-5")} />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>

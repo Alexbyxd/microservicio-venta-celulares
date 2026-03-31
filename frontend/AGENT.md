@@ -9,6 +9,7 @@ Eres un **Ingeniero Senior Frontend**, experto en **Next.js**, **React** y arqui
 - **Framework Core:** Next.js (App Router), React
 - **Estilos:** Tailwind CSS
 - **Componentes Base:** Shadcn UI
+- **Iconos:** Lucide React (NO usar @phosphor-icons/react - tiene problemas de compatibilidad con Next.js 16)
 - **Lógica de validación:** Zod + React Hook Form
 - **Comunicación:** Axios (instancia configurada en `@/lib/api-client`)
 - **Variables de entorno:** `@/lib/config/envs.ts` con validación Zod (lazy)
@@ -175,6 +176,8 @@ export function MiComponente() {
 ## Prohibiciones Técnicas
 
 - **NO** crear páginas sin usar el App Router (`app/`).
+- **NO** usar `@phosphor-icons/react` - usar siempre `lucide-react`.
+- **NO** usar la propiedad `weight` en iconos de lucide-react (no es soportada).
 - **NO** mezclar estilos en línea (inline styles) con Tailwind CSS.
 - **NO** romper el paradigma Server/Client Components. Usar `'use client'` solo cuando sea estrictamente necesario.
 - **NO** subir código con errores de TypeScript o warnings de linting.

@@ -2,7 +2,11 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { RpcException } from '@nestjs/microservices';
 import { Product, ProductDocument } from './schemas/product.schema';
-import { CreateProductDto, UpdateProductDto, ProductQueryDto } from './dto/product.dto';
+import {
+  CreateProductDto,
+  UpdateProductDto,
+  ProductQueryDto,
+} from './dto/product.dto';
 
 @Injectable()
 export class ProductsService {
@@ -16,7 +20,7 @@ export class ProductsService {
 
   async findAll(query?: ProductQueryDto) {
     this.logger.log('Obteniendo todos los productos');
-    
+
     try {
       const filter: any = { isActive: true };
 
@@ -28,7 +32,6 @@ export class ProductsService {
         if (query.ram) filter.ram = query.ram;
         if (query.condition) filter.condition = query.condition;
         if (query.featured !== undefined) filter.featured = query.featured;
-        
         if (query.minPrice || query.maxPrice) {
           filter.price = {};
           if (query.minPrice) filter.price.$gte = query.minPrice;
@@ -50,7 +53,7 @@ export class ProductsService {
 
   async findOne(id: string) {
     this.logger.log(`Obteniendo producto ${id}`);
-    
+
     if (!id || id.length !== 24) {
       throw new RpcException({
         statusCode: 400,
@@ -60,14 +63,14 @@ export class ProductsService {
 
     try {
       const product = await this.productModel.findById(id).exec();
-      
+
       if (!product) {
         throw new RpcException({
           statusCode: 404,
           message: 'Producto no encontrado',
         });
       }
-      
+
       return product;
     } catch (error) {
       if (error instanceof RpcException) throw error;
@@ -81,14 +84,21 @@ export class ProductsService {
 
   async create(product: CreateProductDto) {
     this.logger.log(`Creando producto ${product.name}`);
-    
-    if (!product.name || !product.brand || !product.model || !product.description || !product.price) {
+
+    if (
+      !product.name ||
+      !product.brand ||
+      !product.model ||
+      !product.description ||
+      !product.price
+    ) {
       throw new RpcException({
         statusCode: 400,
-        message: 'Los campos name, brand, model, description y price son requeridos',
+        message:
+          'Los campos name, brand, model, description y price son requeridos',
       });
     }
-    
+
     try {
       const newProduct = new this.productModel(product);
       const saved = await newProduct.save();
@@ -105,7 +115,7 @@ export class ProductsService {
 
   async update(id: string, product: UpdateProductDto) {
     this.logger.log(`Actualizando producto ${id}`);
-    
+
     if (!id || id.length !== 24) {
       throw new RpcException({
         statusCode: 400,
@@ -114,15 +124,17 @@ export class ProductsService {
     }
 
     try {
-      const updated = await this.productModel.findByIdAndUpdate(id, product, { new: true }).exec();
-      
+      const updated = await this.productModel
+        .findByIdAndUpdate(id, product, { new: true })
+        .exec();
+
       if (!updated) {
         throw new RpcException({
           statusCode: 404,
           message: 'Producto no encontrado',
         });
       }
-      
+
       return updated;
     } catch (error) {
       if (error instanceof RpcException) throw error;
@@ -136,7 +148,7 @@ export class ProductsService {
 
   async delete(id: string) {
     this.logger.log(`Eliminando producto ${id}`);
-    
+
     if (!id || id.length !== 24) {
       throw new RpcException({
         statusCode: 400,
@@ -145,15 +157,17 @@ export class ProductsService {
     }
 
     try {
-      const deleted = await this.productModel.findByIdAndUpdate(id, { isActive: false }, { new: true }).exec();
-      
+      const deleted = await this.productModel
+        .findByIdAndUpdate(id, { isActive: false }, { new: true })
+        .exec();
+
       if (!deleted) {
         throw new RpcException({
           statusCode: 404,
           message: 'Producto no encontrado',
         });
       }
-      
+
       return deleted;
     } catch (error) {
       if (error instanceof RpcException) throw error;
@@ -167,7 +181,7 @@ export class ProductsService {
 
   async search(query: ProductQueryDto) {
     this.logger.log('Buscando productos');
-    
+
     try {
       const filter: any = { isActive: true };
 

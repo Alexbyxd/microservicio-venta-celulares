@@ -4,21 +4,21 @@ import { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
-  House, 
-  DeviceMobile, 
+  Home, 
+  Smartphone, 
   Users, 
-  Gear, 
-  SignOut,
-  List,
-} from "@phosphor-icons/react";
+  Settings, 
+  LogOut,
+  Menu,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
-  { href: "/admin", icon: House, label: "Dashboard" },
-  { href: "/admin/catalog", icon: DeviceMobile, label: "Catálogo" },
+  { href: "/admin", icon: Home, label: "Dashboard" },
+  { href: "/admin/catalog", icon: Smartphone, label: "Catálogo" },
   { href: "/admin/users", icon: Users, label: "Usuarios" },
-  { href: "/admin/settings", icon: Gear, label: "Configuración" },
+  { href: "/admin/settings", icon: Settings, label: "Configuración" },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -31,7 +31,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <div className="p-4 border-b border-border">
           <div className="flex items-center gap-2">
             <div className="size-8 bg-primary rounded flex items-center justify-center">
-              <List className="size-5 text-primary-foreground" weight="bold" />
+              <Menu className="size-5 text-primary-foreground" />
             </div>
             <h1 className="text-lg font-semibold">Admin</h1>
           </div>
@@ -52,7 +52,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     )}
                   >
-                    <item.icon className="size-5" weight="bold" />
+                    <item.icon className="size-5" />
                     {item.label}
                   </Link>
                 </li>
@@ -62,7 +62,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </nav>
         <div className="p-4 border-t border-border">
           <Button variant="ghost" className="w-full justify-start gap-3">
-            <SignOut className="size-5" weight="bold" />
+            <LogOut className="size-5" />
             Cerrar sesión
           </Button>
         </div>
@@ -72,7 +72,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-background border-b border-border flex items-center px-4 z-50">
         <div className="flex items-center gap-2">
           <div className="size-7 bg-primary rounded flex items-center justify-center">
-            <List className="size-4 text-primary-foreground" weight="bold" />
+            <Menu className="size-4 text-primary-foreground" />
           </div>
           <h1 className="text-base font-semibold">Admin</h1>
         </div>

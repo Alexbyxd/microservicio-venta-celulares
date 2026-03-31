@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { ArrowLeft, DeviceMobile } from "@phosphor-icons/react";
+import { ArrowLeft, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -201,7 +201,7 @@ export default function CreateProductPage() {
         </Button>
         <div>
           <h1 className="text-2xl font-semibold flex items-center gap-2">
-            <DeviceMobile className="size-6" weight="fill" />
+            <Smartphone className="size-6" />
             Crear Nuevo Producto
           </h1>
           <p className="text-sm text-muted-foreground">

@@ -3,11 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { 
-  PencilSimple, 
-  Trash, 
+  Pencil, 
+  Trash2, 
   Plus, 
-  DeviceMobile,
-} from "@phosphor-icons/react";
+  Smartphone,
+} from "lucide-react";
 import { toast } from "sonner";
 import { 
   Table, 
@@ -88,7 +88,7 @@ export default function CatalogPage() {
         <h1 className="text-2xl font-semibold">Catálogo de Productos</h1>
         <Button asChild>
           <Link href="/admin/catalog/create">
-            <Plus className="size-4 mr-2" weight="bold" />
+            <Plus className="size-4 mr-2" />
             Crear Nuevo Celular
           </Link>
         </Button>
@@ -202,7 +202,7 @@ export default function CatalogPage() {
                             className="size-full object-cover" 
                           />
                         ) : (
-                          <DeviceMobile className="size-5 text-muted-foreground" />
+                          <Smartphone className="size-5 text-muted-foreground" />
                         )}
                       </div>
                     </TableCell>
@@ -222,7 +222,7 @@ export default function CatalogPage() {
                       <div className="flex gap-2">
                         <Button variant="outline" size="icon-sm" asChild>
                           <Link href={`/admin/catalog/${product._id}`}>
-                            <PencilSimple className="size-4" />
+                            <Pencil className="size-4" />
                           </Link>
                         </Button>
                         <Button 
@@ -230,7 +230,7 @@ export default function CatalogPage() {
                           size="icon-sm" 
                           onClick={() => handleDelete(product._id)}
                         >
-                          <Trash className="size-4" />
+                          <Trash2 className="size-4" />
                         </Button>
                       </div>
                     </TableCell>
