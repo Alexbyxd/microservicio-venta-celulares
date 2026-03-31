@@ -50,5 +50,9 @@ generated/prisma/
 *.tgz
 .cache/
 
+# Worktrees
+.worktrees/
+worktrees/
+
 compose.yml.template
 proyecto.MD
