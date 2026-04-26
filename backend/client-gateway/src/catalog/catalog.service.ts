@@ -44,6 +44,7 @@ export class CatalogService {
   }
 
   async createProduct(product: CreateProductDto) {
+    this.logger.log('Enviando solicitud a catalog-ms: createProduct');
     return firstValueFrom(
       this.catalogClient.send('createProduct', product).pipe(
         timeout(10000),

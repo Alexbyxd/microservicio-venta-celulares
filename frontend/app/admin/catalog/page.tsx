@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { CldImage } from "next-cloudinary";
 import { 
   Pencil, 
   Trash2, 
@@ -38,6 +39,27 @@ const filterOptions = {
   ram: ["4GB", "6GB", "8GB", "12GB", "16GB"],
   condition: ["Nuevo", "Usado", "Reacondicionado"],
 };
+
+// Helper component to render Cloudinary images or fallback to regular img
+function ProductImage({ src, alt }: { src: string; alt: string }) {
+  // Check if it's a Cloudinary URL
+  const isCloudinary = src.includes('res.cloudinary.com');
+  
+  if (isCloudinary) {
+    return (
+      <CldImage
+        src={src}
+        width={48}
+        height={48}
+        crop="fill"
+        alt={alt}
+      />
+    );
+  }
+  
+  // Fallback to regular img for non-Cloudinary URLs
+  return <img src={src} alt={alt} className="size-full object-cover" />;
+}
 
 export default function CatalogPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -196,10 +218,9 @@ export default function CatalogPage() {
                     <TableCell>
                       <div className="size-12 bg-muted rounded flex items-center justify-center overflow-hidden">
                         {product.images?.[0] ? (
-                          <img 
+                          <ProductImage 
                             src={product.images[0]} 
                             alt={product.name} 
-                            className="size-full object-cover" 
                           />
                         ) : (
                           <Smartphone className="size-5 text-muted-foreground" />

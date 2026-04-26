@@ -43,6 +43,16 @@ services:
     networks:
       - microservicios
 
+  redis-server:
+    image: redis:7.0-alpine
+    container_name: redis-server
+    ports:
+      - "6379:6379"
+    networks:
+      - microservicios
+    volumes:
+      - redis_data:/data
+
   # ==========================================
   # MICROSERVICIOS
   # ==========================================
@@ -62,7 +72,7 @@ services:
       - JWT_SECRET=your-super-secret-jwt-key-change-in-production
     networks:
       - microservicios
-    command: sh -c "npm install && npm run start:dev"
+    command: sh -c "npm run start:dev"
     depends_on:
       - rabbit-server
       - auth-db
@@ -82,10 +92,31 @@ services:
       - DATABASE_URL=mongodb://admin:admin@catalog-db:27017/catalog_db?authSource=admin
     networks:
       - microservicios
-    command: sh -c "npm install && npm run start:dev"
+    command: sh -c "npm run start:dev"
     depends_on:
       - rabbit-server
       - catalog-db
+
+  cart-ms:
+    image: node:22
+    container_name: cart-ms
+    working_dir: /usr/src/app
+    volumes:
+      - ./backend/cart-ms:/usr/src/app
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - RABBITMQ_HOST=amqp://user:pass@rabbit-server:5672
+      - REDIS_HOST=redis-server
+      - REDIS_PORT=6379
+    networks:
+      - microservicios
+    command: sh -c "npm run start:dev"
+    depends_on:
+      - rabbit-server
+      - redis-server
 
   client-gateway:
     image: node:22
@@ -101,11 +132,12 @@ services:
       - RABBITMQ_HOST=amqp://user:pass@rabbit-server:5672
     networks:
       - microservicios
-    command: sh -c "npm install && npm run start:dev"
+    command: sh -c "npm run start:dev"
     depends_on:
       - rabbit-server
       - auth-ms
       - catalog-ms
+      - cart-ms
 
   frontend:
     image: node:22
@@ -120,7 +152,7 @@ services:
       - NEXT_PUBLIC_API_URL=http://localhost:3000/api
     networks:
       - microservicios
-    command: sh -c "npm install && npm run dev"
+    command: sh -c "npm run dev"
     depends_on:
       - client-gateway
 
@@ -132,3 +164,4 @@ volumes:
   rabbitmq_data:
   auth_db_data:
   catalog_db_data:
+  redis_data:
