@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { CldImage } from "next-cloudinary";
@@ -43,8 +43,15 @@ const filterOptions = {
 
 // Helper component to render Cloudinary images or fallback to regular img
 function ProductImage({ src, alt }: { src: string; alt: string }) {
-  // Check if it's a Cloudinary URL
-  const isCloudinary = src.includes('res.cloudinary.com');
+  // Check if it's a Cloudinary URL safely
+  const isCloudinary = useMemo(() => {
+    try {
+      const url = new URL(src);
+      return url.hostname === 'res.cloudinary.com';
+    } catch {
+      return false;
+    }
+  }, [src]);
   
   if (isCloudinary) {
     return (

@@ -78,7 +78,6 @@ describe('ProductsService', () => {
       const mockModel = createMockModel();
       service = new ProductsService(
         mockModel as any,
-        mockCloudinaryService as any,
       );
       
       const result = await service.findAll();
@@ -89,7 +88,6 @@ describe('ProductsService', () => {
       const mockModel = createMockModel();
       service = new ProductsService(
         mockModel as any,
-        mockCloudinaryService as any,
       );
       
       await service.findAll({ brand: 'Apple' });
@@ -102,7 +100,6 @@ describe('ProductsService', () => {
       const mockModel = createMockModel();
       service = new ProductsService(
         mockModel as any,
-        mockCloudinaryService as any,
       );
 
       await expect(
@@ -120,7 +117,6 @@ describe('ProductsService', () => {
       const mockModel = createMockModel();
       service = new ProductsService(
         mockModel as any,
-        mockCloudinaryService as any,
       );
 
       await expect(
@@ -138,7 +134,6 @@ describe('ProductsService', () => {
       const mockModel = createMockModel();
       service = new ProductsService(
         mockModel as any,
-        mockCloudinaryService as any,
       );
 
       await expect(
@@ -156,7 +151,6 @@ describe('ProductsService', () => {
       const mockModel = createMockModel();
       service = new ProductsService(
         mockModel as any,
-        mockCloudinaryService as any,
       );
 
       await expect(
@@ -174,7 +168,6 @@ describe('ProductsService', () => {
       const mockModel = createMockModel();
       service = new ProductsService(
         mockModel as any,
-        mockCloudinaryService as any,
       );
 
       await expect(
@@ -194,7 +187,6 @@ describe('ProductsService', () => {
       const mockModel = createMockModel();
       service = new ProductsService(
         mockModel as any,
-        mockCloudinaryService as any,
       );
 
       await expect(
@@ -212,7 +204,6 @@ describe('ProductsService', () => {
       const mockModel = createMockModel();
       service = new ProductsService(
         mockModel as any,
-        mockCloudinaryService as any,
       );
       
       mockCloudinaryService.uploadFiles.mockResolvedValue([
@@ -241,7 +232,6 @@ describe('ProductsService', () => {
       const mockModel = createMockModel();
       service = new ProductsService(
         mockModel as any,
-        mockCloudinaryService as any,
       );
       
       mockCloudinaryService.uploadFiles.mockResolvedValue(['https://res.cloudinary.com/1.jpg']);
@@ -272,7 +262,6 @@ describe('ProductsService', () => {
       const mockModel = createMockModel();
       service = new ProductsService(
         mockModel as any,
-        mockCloudinaryService as any,
       );
 
       await expect(service.findOne('invalid')).rejects.toThrow(RpcException);
@@ -282,7 +271,6 @@ describe('ProductsService', () => {
       const mockModel = createMockModel();
       service = new ProductsService(
         mockModel as any,
-        mockCloudinaryService as any,
       );
 
       await expect(service.findOne('abc123')).rejects.toThrow(RpcException);
@@ -294,7 +282,6 @@ describe('ProductsService', () => {
       const mockModel = createMockModel();
       service = new ProductsService(
         mockModel as any,
-        mockCloudinaryService as any,
       );
 
       await expect(
@@ -308,7 +295,6 @@ describe('ProductsService', () => {
       const mockModel = createMockModel();
       service = new ProductsService(
         mockModel as any,
-        mockCloudinaryService as any,
       );
 
       await expect(service.delete('invalid')).rejects.toThrow(RpcException);
@@ -320,7 +306,6 @@ describe('ProductsService', () => {
       const mockModel = createMockModel();
       service = new ProductsService(
         mockModel as any,
-        mockCloudinaryService as any,
       );
 
       const result = await service.search({});

@@ -16,7 +16,12 @@ export class CloudinaryService {
 
   isCloudinaryUrl(url: string): boolean {
     if (!url) return false;
-    return url.includes('res.cloudinary.com') && url.includes('/image/upload');
+    try {
+      const parsedUrl = new URL(url);
+      return parsedUrl.hostname === 'res.cloudinary.com' && parsedUrl.pathname.includes('/image/upload');
+    } catch {
+      return false;
+    }
   }
 
   async uploadFile(file: Express.Multer.File): Promise<string> {
