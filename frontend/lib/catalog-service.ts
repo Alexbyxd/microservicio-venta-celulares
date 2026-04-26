@@ -57,7 +57,7 @@ export const catalogService = {
         } else if (Array.isArray(value)) {
           // For arrays like images and tags, append each item
           // NestJS will parse comma-separated values into arrays
-          formData.append(key, (value as any[]).join(','));
+          formData.append(key, (value as (string | number | boolean)[]).join(','));
         } else {
           formData.append(key, String(value));
         }
@@ -102,7 +102,7 @@ export const catalogService = {
         if (typeof value === "object" && !Array.isArray(value)) {
           formData.append(key, JSON.stringify(value));
         } else if (Array.isArray(value)) {
-          formData.append(key, (value as any[]).join(","));
+          formData.append(key, (value as (string | number | boolean)[]).join(","));
         } else {
           formData.append(key, String(value));
         }

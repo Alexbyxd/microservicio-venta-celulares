@@ -24,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Field,
@@ -161,14 +160,14 @@ export default function CreateProductPage() {
       };
 
       if (localFiles.length > 0) {
-        await catalogService.createProductWithImages({ product: productData as any, images: localFiles });
+        await catalogService.createProductWithImages({ product: productData as CreateProductDto, images: localFiles });
       } else {
-        await catalogService.createProduct(productData as any);
+        await catalogService.createProduct(productData as CreateProductDto);
       }
 
       toast.success("Producto creado exitosamente");
       router.push("/admin/catalog");
-    } catch (error) {
+    } catch {
       toast.error("Error al crear el producto");
     } finally {
       setIsSubmitting(false);

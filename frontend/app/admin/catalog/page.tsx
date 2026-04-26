@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { CldImage } from "next-cloudinary";
 import { 
   Pencil, 
@@ -57,8 +58,17 @@ function ProductImage({ src, alt }: { src: string; alt: string }) {
     );
   }
   
-  // Fallback to regular img for non-Cloudinary URLs
-  return <img src={src} alt={alt} className="size-full object-cover" />;
+  // Fallback to Next.js Image for non-Cloudinary URLs
+  return (
+    <Image 
+      src={src} 
+      alt={alt} 
+      width={48} 
+      height={48} 
+      className="size-full object-cover" 
+      unoptimized 
+    />
+  );
 }
 
 export default function CatalogPage() {
@@ -71,7 +81,7 @@ export default function CatalogPage() {
     try {
       const data = await catalogService.getProducts(query);
       setProducts(data);
-    } catch (error) {
+    } catch {
       toast.error("Error al cargar los productos");
     } finally {
       setIsLoading(false);
@@ -95,7 +105,7 @@ export default function CatalogPage() {
       await catalogService.deleteProduct(id);
       toast.success("Producto deshabilitado correctamente");
       fetchProducts(filters);
-    } catch (error) {
+    } catch {
       toast.error("Error al deshabilitar el producto");
     }
   };

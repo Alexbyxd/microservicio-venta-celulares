@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { X, ImageIcon, AlertCircle, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { X, AlertCircle, Loader2 } from "lucide-react";
 import Image from "next/image";
 
 export interface ImagePreviewProps {
@@ -10,7 +10,6 @@ export interface ImagePreviewProps {
   onFilesChange?: (files: File[]) => void;
   onUrlsChange?: (urls: string) => void;
   disabled?: boolean;
-  maxFiles?: number;
 }
 
 interface ImageItem {
@@ -27,9 +26,8 @@ export function ImagePreview({
   onFilesChange,
   onUrlsChange,
   disabled = false,
-  maxFiles = 10,
 }: ImagePreviewProps) {
-  const [images, setImages] = useState<ImageItem[]>([]);
+  const [imageStatuses, setImageStatuses] = useState<Record<string, "loading" | "loaded" | "error">>({});
   const createdUrlsRef = useRef<Map<File, string>>(new Map());
 
   const revokeUrl = useCallback((url: string) => {
@@ -48,22 +46,23 @@ export function ImagePreview({
       }
     });
 
-    const fileItems: ImageItem[] = files.map((file, index) => {
-      let url = newCreatedUrls.get(file);
-      if (!url) {
-        url = URL.createObjectURL(file);
-        newCreatedUrls.set(file, url);
+    files.forEach((file) => {
+      if (!newCreatedUrls.has(file)) {
+        newCreatedUrls.set(file, URL.createObjectURL(file));
       }
-      return {
-        id: `file-${index}-${file.name}`,
-        url,
-        status: "loaded" as const,
-        type: "file" as const,
-        file,
-      };
     });
 
     createdUrlsRef.current = newCreatedUrls;
+  }, [files, revokeUrl]);
+
+  const images = useMemo(() => {
+    const fileItems: ImageItem[] = files.map((file, index) => ({
+      id: `file-${index}-${file.name}`,
+      url: createdUrlsRef.current.get(file) || "",
+      status: "loaded" as const,
+      type: "file" as const,
+      file,
+    }));
 
     const parsedUrls = urls
       ? urls.split(",").map((url) => url.trim()).filter(Boolean)
@@ -72,16 +71,12 @@ export function ImagePreview({
     const urlItems: ImageItem[] = parsedUrls.map((url, index) => ({
       id: `url-${index}-${url}`,
       url,
-      status: "loading" as const,
+      status: imageStatuses[url] || "loading",
       type: "url" as const,
     }));
 
-    setImages([...fileItems, ...urlItems]);
-
-    return () => {
-      // Solo en unmount total o si cambia radicalmente
-    };
-  }, [files, urls, revokeUrl]);
+    return [...fileItems, ...urlItems];
+  }, [files, urls, imageStatuses]);
 
   useEffect(() => {
     return () => {
@@ -90,19 +85,11 @@ export function ImagePreview({
   }, [revokeUrl]);
 
   const handleImageLoad = useCallback((url: string) => {
-    setImages((prev) =>
-      prev.map((item) =>
-        item.url === url ? { ...item, status: "loaded" as const } : item
-      )
-    );
+    setImageStatuses((prev) => ({ ...prev, [url]: "loaded" }));
   }, []);
 
   const handleImageError = useCallback((url: string) => {
-    setImages((prev) =>
-      prev.map((item) =>
-        item.url === url ? { ...item, status: "error" as const } : item
-      )
-    );
+    setImageStatuses((prev) => ({ ...prev, [url]: "error" }));
   }, []);
 
   const handleRemove = useCallback(

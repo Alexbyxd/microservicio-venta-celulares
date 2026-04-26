@@ -19,37 +19,32 @@ const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { data: session, status, update } = useSession();
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: session, status } = useSession();
+  
+  // Initialize state from localStorage if available to avoid flashes and effects
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const storedUser = localStorage.getItem(USER_KEY);
+    try {
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [token, setToken] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem(TOKEN_KEY);
+  });
 
   useEffect(() => {
-    if (status === 'loading') {
-      setIsLoading(true);
-      return;
-    }
+    if (status === 'loading') return;
 
     if (session?.token && session?.user) {
+      // Sync state with session
       setToken(session.token as string);
       setUser(session.user as User);
-    } else {
-      const storedToken = localStorage.getItem(TOKEN_KEY);
-      const storedUser = localStorage.getItem(USER_KEY);
-
-      if (storedToken && storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser) as User;
-          setToken(storedToken);
-          setUser(parsedUser);
-        } catch (error) {
-          console.error('Error parsing stored user:', error);
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(USER_KEY);
-        }
-      }
     }
-    setIsLoading(false);
   }, [session, status]);
 
   const login = useCallback((newToken: string, newUser: User) => {
@@ -70,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = {
     user,
     token,
-    isLoading: isLoading || status === 'loading',
+    isLoading: status === 'loading',
     login,
     logout,
     isAuthenticated: !!(token && user) || !!session,

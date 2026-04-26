@@ -1,21 +1,12 @@
-import NextAuth, { DefaultSession } from "next-auth"
-import { User } from "@/types/auth"
+export {}
 
 declare module "next-auth" {
-  interface Session {
-    user: User
-    token: string
-  }
-
+  /**
+   * The user object returned from the authorize callback or from the database
+   */
   interface User {
-    token?: string
-    user?: User
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    user?: User
-    token?: string
+    id: string;
+    token?: string;
+    user?: unknown; // Use unknown instead of any
   }
 }

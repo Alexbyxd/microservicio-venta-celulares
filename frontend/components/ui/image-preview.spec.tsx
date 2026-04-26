@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { ImagePreview } from './image-preview';
 
 // Mock lucide-react icons
@@ -21,7 +21,7 @@ describe('ImagePreview', () => {
   });
 
   it('debería no renderizar nada cuando urls es undefined', () => {
-    const { container } = render(<ImagePreview urls={undefined as any} />);
+    const { container } = render(<ImagePreview urls={undefined} />);
     expect(container.firstChild).toBeNull();
   });
 
@@ -37,8 +37,8 @@ describe('ImagePreview', () => {
     const urls = 'https://example.com/img1.jpg, https://example.com/img2.jpg';
     const { container } = render(<ImagePreview urls={urls} />);
     
-    // Should have image containers (w-20 h-20 = 80px)
-    const images = container.querySelectorAll('.w-20');
+    // Should have image containers (w-24 h-24)
+    const images = container.querySelectorAll('.w-24');
     expect(images.length).toBe(2);
   });
 
@@ -47,7 +47,7 @@ describe('ImagePreview', () => {
     const { container } = render(<ImagePreview urls={urls} />);
     
     // Should have 2 images
-    const images = container.querySelectorAll('.w-20');
+    const images = container.querySelectorAll('.w-24');
     expect(images.length).toBe(2);
   });
 
