@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/field";
 import { ImagePreview } from "@/components/ui/image-preview";
 import { catalogService } from "@/lib/catalog-service";
+import { CreateProductDto } from "@/types/catalog";
 
 const options = {
   currency: ["USD", "EUR", "BOB"],
