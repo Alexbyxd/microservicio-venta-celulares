@@ -8,7 +8,9 @@ import {
   Min,
   IsMongoId,
   IsNotEmpty,
+  ValidateNested,
 } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 
 export class ProductSpecificationsDto {
   @IsString()
@@ -41,6 +43,12 @@ export class ProductSpecificationsDto {
 
   @IsArray()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value.split(',').map((v) => v.trim()).filter(Boolean);
+    }
+    return value;
+  })
   connectivity?: string[];
 
   @IsString()
@@ -53,22 +61,27 @@ export class ProductSpecificationsDto {
 
   @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
   nfc?: boolean;
 
   @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
   dualSim?: boolean;
 
   @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
   fingerprint?: boolean;
 
   @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
   faceUnlock?: boolean;
 
   @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
   expandableMemory?: boolean;
 }
 
@@ -92,6 +105,7 @@ export class CreateProductDto {
   @IsNumber()
   @Min(0)
   @IsNotEmpty()
+  @Type(() => Number)
   price: number;
 
   @IsString()
@@ -132,10 +146,32 @@ export class CreateProductDto {
 
   @IsArray()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value.split(',').map((v) => v.trim()).filter(Boolean);
+      }
+    }
+    return value;
+  })
   images?: string[];
 
   @IsObject()
   @IsOptional()
+  @ValidateNested()
+  @Type(() => ProductSpecificationsDto)
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value;
+      }
+    }
+    return value;
+  })
   specifications?: ProductSpecificationsDto;
 
   @IsString()
@@ -144,15 +180,23 @@ export class CreateProductDto {
 
   @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
   featured?: boolean;
 
   @IsNumber()
   @Min(0)
   @IsOptional()
+  @Type(() => Number)
   stock?: number;
 
   @IsArray()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value.split(',').map((v) => v.trim()).filter(Boolean);
+    }
+    return value;
+  })
   tags?: string[];
 }
 
@@ -176,6 +220,7 @@ export class UpdateProductDto {
   @IsNumber()
   @Min(0)
   @IsOptional()
+  @Type(() => Number)
   price?: number;
 
   @IsString()
@@ -216,10 +261,32 @@ export class UpdateProductDto {
 
   @IsArray()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value.split(',').map((v) => v.trim()).filter(Boolean);
+      }
+    }
+    return value;
+  })
   images?: string[];
 
   @IsObject()
   @IsOptional()
+  @ValidateNested()
+  @Type(() => ProductSpecificationsDto)
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value;
+      }
+    }
+    return value;
+  } )
   specifications?: ProductSpecificationsDto;
 
   @IsString()
@@ -228,19 +295,28 @@ export class UpdateProductDto {
 
   @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
   isActive?: boolean;
 
   @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
   featured?: boolean;
 
   @IsNumber()
   @Min(0)
   @IsOptional()
+  @Type(() => Number)
   stock?: number;
 
   @IsArray()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value.split(',').map((v) => v.trim()).filter(Boolean);
+    }
+    return value;
+  })
   tags?: string[];
 }
 
@@ -272,25 +348,30 @@ export class ProductQueryDto {
   @IsNumber()
   @Min(0)
   @IsOptional()
+  @Type(() => Number)
   minPrice?: number;
 
   @IsNumber()
   @Min(0)
   @IsOptional()
+  @Type(() => Number)
   maxPrice?: number;
 
   @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
   featured?: boolean;
 
   @IsNumber()
   @Min(1)
   @IsOptional()
+  @Type(() => Number)
   limit?: number;
 
   @IsNumber()
   @Min(0)
   @IsOptional()
+  @Type(() => Number)
   skip?: number;
 }
 

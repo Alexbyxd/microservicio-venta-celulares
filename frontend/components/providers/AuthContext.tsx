@@ -19,58 +19,55 @@ const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { data: session, status, update } = useSession();
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: session, status } = useSession();
+  
+  // Initialize state from localStorage if available
+  const [localUser, setLocalUser] = useState<User | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const storedUser = localStorage.getItem(USER_KEY);
+    try {
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [localToken, setLocalToken] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem(TOKEN_KEY);
+  });
+
+  // Derive current user and token, prioritizing session data
+  const user = (session?.user as User) ?? localUser;
+  const token = (session?.token as string) ?? localToken;
 
   useEffect(() => {
-    if (status === 'loading') {
-      setIsLoading(true);
-      return;
-    }
-
     if (session?.token && session?.user) {
-      setToken(session.token as string);
-      setUser(session.user as User);
-    } else {
-      const storedToken = localStorage.getItem(TOKEN_KEY);
-      const storedUser = localStorage.getItem(USER_KEY);
-
-      if (storedToken && storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser) as User;
-          setToken(storedToken);
-          setUser(parsedUser);
-        } catch (error) {
-          console.error('Error parsing stored user:', error);
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(USER_KEY);
-        }
-      }
+      // Sync localStorage with session
+      localStorage.setItem(TOKEN_KEY, session.token as string);
+      localStorage.setItem(USER_KEY, JSON.stringify(session.user));
     }
-    setIsLoading(false);
-  }, [session, status]);
+  }, [session]);
 
   const login = useCallback((newToken: string, newUser: User) => {
     localStorage.setItem(TOKEN_KEY, newToken);
     localStorage.setItem(USER_KEY, JSON.stringify(newUser));
-    setToken(newToken);
-    setUser(newUser);
+    setLocalToken(newToken);
+    setLocalUser(newUser);
   }, []);
 
   const logout = useCallback(async () => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
-    setToken(null);
-    setUser(null);
+    setLocalToken(null);
+    setLocalUser(null);
     await nextAuthSignOut({ callbackUrl: '/' });
   }, []);
 
   const value = {
     user,
     token,
-    isLoading: isLoading || status === 'loading',
+    isLoading: status === 'loading',
     login,
     logout,
     isAuthenticated: !!(token && user) || !!session,

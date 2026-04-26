@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { CldImage } from "next-cloudinary";
 import { 
   Pencil, 
   Trash2, 
@@ -39,6 +41,43 @@ const filterOptions = {
   condition: ["Nuevo", "Usado", "Reacondicionado"],
 };
 
+// Helper component to render Cloudinary images or fallback to regular img
+function ProductImage({ src, alt }: { src: string; alt: string }) {
+  // Check if it's a Cloudinary URL safely
+  const isCloudinary = useMemo(() => {
+    try {
+      const url = new URL(src);
+      return url.hostname === 'res.cloudinary.com';
+    } catch {
+      return false;
+    }
+  }, [src]);
+  
+  if (isCloudinary) {
+    return (
+      <CldImage
+        src={src}
+        width={48}
+        height={48}
+        crop="fill"
+        alt={alt}
+      />
+    );
+  }
+  
+  // Fallback to Next.js Image for non-Cloudinary URLs
+  return (
+    <Image 
+      src={src} 
+      alt={alt} 
+      width={48} 
+      height={48} 
+      className="size-full object-cover" 
+      unoptimized 
+    />
+  );
+}
+
 export default function CatalogPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,7 +88,7 @@ export default function CatalogPage() {
     try {
       const data = await catalogService.getProducts(query);
       setProducts(data);
-    } catch (error) {
+    } catch {
       toast.error("Error al cargar los productos");
     } finally {
       setIsLoading(false);
@@ -73,7 +112,7 @@ export default function CatalogPage() {
       await catalogService.deleteProduct(id);
       toast.success("Producto deshabilitado correctamente");
       fetchProducts(filters);
-    } catch (error) {
+    } catch {
       toast.error("Error al deshabilitar el producto");
     }
   };
@@ -196,10 +235,9 @@ export default function CatalogPage() {
                     <TableCell>
                       <div className="size-12 bg-muted rounded flex items-center justify-center overflow-hidden">
                         {product.images?.[0] ? (
-                          <img 
+                          <ProductImage 
                             src={product.images[0]} 
                             alt={product.name} 
-                            className="size-full object-cover" 
                           />
                         ) : (
                           <Smartphone className="size-5 text-muted-foreground" />

@@ -4,11 +4,17 @@ import * as Joi from 'joi';
 interface EnvVars {
   PORT: number;
   RABBITMQ_HOST: string;
+  CLOUDINARY_CLOUD_NAME: string;
+  CLOUDINARY_API_KEY: string;
+  CLOUDINARY_API_SECRET: string;
 }
 
 const envsSchema = Joi.object({
   PORT: Joi.number().required(),
   RABBITMQ_HOST: Joi.string().required(),
+  CLOUDINARY_CLOUD_NAME: Joi.string().required(),
+  CLOUDINARY_API_KEY: Joi.string().required(),
+  CLOUDINARY_API_SECRET: Joi.string().required(),
 })
   .unknown()
   .required();
@@ -24,4 +30,9 @@ const envVars: EnvVars = value;
 export const envs = {
   port: envVars.PORT,
   rabbitmqHost: envVars.RABBITMQ_HOST,
+  cloudinary: {
+    cloudName: envVars.CLOUDINARY_CLOUD_NAME,
+    apiKey: envVars.CLOUDINARY_API_KEY,
+    apiSecret: envVars.CLOUDINARY_API_SECRET,
+  },
 };

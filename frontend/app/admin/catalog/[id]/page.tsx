@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { ArrowLeft, Smartphone } from "lucide-react";
+import { ArrowLeft, Smartphone, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldLabel, FieldError, FieldGroup } from "@/components/ui/field";
 import { catalogService } from "@/lib/catalog-service";
+import { ImagePreview } from "@/components/ui/image-preview";
 
 const options = {
   currency: ["USD", "EUR", "MXN"],
@@ -34,7 +35,7 @@ const productSchema = z.object({
   brand: z.string().min(1, "La marca es requerida"),
   model: z.string().min(1, "El modelo es requerido"),
   description: z.string().min(1, "La descripción es requerida"),
-  price: z.coerce.number().min(0, "El precio debe ser mayor o igual a 0"),
+  price: z.number().min(0, "El precio debe ser mayor o igual a 0"),
   currency: z.string().optional(),
   sku: z.string().optional(),
   barcode: z.string().optional(),
@@ -45,9 +46,9 @@ const productSchema = z.object({
   ram: z.string().optional(),
   condition: z.string().optional(),
   carrierLock: z.string().optional(),
-  images: z.string().optional(),
+  images: z.array(z.string()).optional(),
   featured: z.boolean().optional(),
-  stock: z.coerce.number().min(0).optional(),
+  stock: z.number().min(0).optional(),
   tags: z.string().optional(),
   specifications: z.object({
     processor: z.string().optional(),
@@ -84,7 +85,7 @@ type ProductFormValues = {
   ram?: string;
   condition?: string;
   carrierLock?: string;
-  images?: string;
+  images?: string[];
   featured?: boolean;
   stock?: number;
   tags?: string;
@@ -112,9 +113,10 @@ export default function EditProductPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newImages, setNewImages] = useState<File[]>([]);
   const productId = params.id as string;
 
-  const form = useForm({
+  const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: "",
@@ -132,7 +134,7 @@ export default function EditProductPage() {
       ram: "",
       condition: "",
       carrierLock: "",
-      images: "",
+      images: [],
       featured: false,
       stock: 0,
       tags: "",
@@ -177,7 +179,7 @@ export default function EditProductPage() {
           ram: product.ram || "",
           condition: product.condition || "",
           carrierLock: product.carrierLock || "",
-          images: product.images?.join(", ") || "",
+          images: product.images || [],
           featured: product.featured || false,
           stock: product.stock || 0,
           tags: product.tags?.join(", ") || "",
@@ -214,10 +216,6 @@ export default function EditProductPage() {
   const onSubmit = async (data: ProductFormValues) => {
     setIsSubmitting(true);
     try {
-      const imagesArray = data.images
-        ? data.images.split(",").map((url) => url.trim()).filter(Boolean)
-        : undefined;
-
       const tagsArray = data.tags
         ? data.tags.split(",").map((tag) => tag.trim()).filter(Boolean)
         : undefined;
@@ -228,7 +226,6 @@ export default function EditProductPage() {
 
       const productData = {
         ...data,
-        images: imagesArray,
         tags: tagsArray,
         specifications: data.specifications
           ? {
@@ -238,7 +235,11 @@ export default function EditProductPage() {
           : undefined,
       };
 
-      await catalogService.updateProduct(productId, productData);
+      await catalogService.updateProductWithImages(productId, {
+        product: productData,
+        images: newImages,
+      });
+
       toast.success("Producto actualizado correctamente");
       router.push("/admin/catalog");
     } catch (error) {
@@ -246,6 +247,15 @@ export default function EditProductPage() {
       toast.error("Error al actualizar el producto");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files);
+      setNewImages((prev) => [...prev, ...filesArray]);
+      // Reset input value to allow selecting the same file again
+      e.target.value = "";
     }
   };
 
@@ -284,25 +294,25 @@ export default function EditProductPage() {
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field data-invalid={!!form.formState.errors.name}>
               <FieldLabel htmlFor="name">Nombre *</FieldLabel>
-              <Input id="name" {...form.register("name")} />
+              <Input id="name" aria-invalid={!!form.formState.errors.name} {...form.register("name")} />
               <FieldError errors={[form.formState.errors.name]} />
             </Field>
 
             <Field data-invalid={!!form.formState.errors.brand}>
               <FieldLabel htmlFor="brand">Marca *</FieldLabel>
-              <Input id="brand" {...form.register("brand")} />
+              <Input id="brand" aria-invalid={!!form.formState.errors.brand} {...form.register("brand")} />
               <FieldError errors={[form.formState.errors.brand]} />
             </Field>
 
             <Field data-invalid={!!form.formState.errors.model}>
               <FieldLabel htmlFor="model">Modelo *</FieldLabel>
-              <Input id="model" {...form.register("model")} />
+              <Input id="model" aria-invalid={!!form.formState.errors.model} {...form.register("model")} />
               <FieldError errors={[form.formState.errors.model]} />
             </Field>
 
             <Field data-invalid={!!form.formState.errors.price}>
               <FieldLabel htmlFor="price">Precio *</FieldLabel>
-              <Input id="price" type="number" step="0.01" {...form.register("price")} />
+              <Input id="price" type="number" step="0.01" aria-invalid={!!form.formState.errors.price} {...form.register("price", { valueAsNumber: true })} />
               <FieldError errors={[form.formState.errors.price]} />
             </Field>
 
@@ -312,7 +322,7 @@ export default function EditProductPage() {
                 value={form.watch("currency")}
                 onValueChange={(value) => form.setValue("currency", value)}
               >
-                <SelectTrigger id="currency">
+                <SelectTrigger id="currency" aria-invalid={!!form.formState.errors.currency}>
                   <SelectValue placeholder="Seleccionar moneda" />
                 </SelectTrigger>
                 <SelectContent>
@@ -327,17 +337,17 @@ export default function EditProductPage() {
 
             <Field>
               <FieldLabel htmlFor="sku">SKU</FieldLabel>
-              <Input id="sku" {...form.register("sku")} />
+              <Input id="sku" aria-invalid={!!form.formState.errors.sku} {...form.register("sku")} />
             </Field>
 
             <Field>
               <FieldLabel htmlFor="barcode">Código de Barras</FieldLabel>
-              <Input id="barcode" {...form.register("barcode")} />
+              <Input id="barcode" aria-invalid={!!form.formState.errors.barcode} {...form.register("barcode")} />
             </Field>
 
             <Field data-invalid={!!form.formState.errors.description}>
               <FieldLabel htmlFor="description">Descripción *</FieldLabel>
-              <Textarea id="description" {...form.register("description")} rows={3} />
+              <Textarea id="description" aria-invalid={!!form.formState.errors.description} {...form.register("description")} rows={3} />
               <FieldError errors={[form.formState.errors.description]} />
             </Field>
           </CardContent>
@@ -354,7 +364,7 @@ export default function EditProductPage() {
                 value={form.watch("category")}
                 onValueChange={(value) => form.setValue("category", value)}
               >
-                <SelectTrigger id="category">
+                <SelectTrigger id="category" aria-invalid={!!form.formState.errors.category}>
                   <SelectValue placeholder="Seleccionar categoría" />
                 </SelectTrigger>
                 <SelectContent>
@@ -369,7 +379,7 @@ export default function EditProductPage() {
 
             <Field>
               <FieldLabel htmlFor="subcategory">Subcategoría</FieldLabel>
-              <Input id="subcategory" {...form.register("subcategory")} />
+              <Input id="subcategory" aria-invalid={!!form.formState.errors.subcategory} {...form.register("subcategory")} />
             </Field>
 
             <Field>
@@ -378,7 +388,7 @@ export default function EditProductPage() {
                 value={form.watch("color")}
                 onValueChange={(value) => form.setValue("color", value)}
               >
-                <SelectTrigger id="color">
+                <SelectTrigger id="color" aria-invalid={!!form.formState.errors.color}>
                   <SelectValue placeholder="Seleccionar color" />
                 </SelectTrigger>
                 <SelectContent>
@@ -397,7 +407,7 @@ export default function EditProductPage() {
                 value={form.watch("storage")}
                 onValueChange={(value) => form.setValue("storage", value)}
               >
-                <SelectTrigger id="storage">
+                <SelectTrigger id="storage" aria-invalid={!!form.formState.errors.storage}>
                   <SelectValue placeholder="Seleccionar almacenamiento" />
                 </SelectTrigger>
                 <SelectContent>
@@ -416,7 +426,7 @@ export default function EditProductPage() {
                 value={form.watch("ram")}
                 onValueChange={(value) => form.setValue("ram", value)}
               >
-                <SelectTrigger id="ram">
+                <SelectTrigger id="ram" aria-invalid={!!form.formState.errors.ram}>
                   <SelectValue placeholder="Seleccionar RAM" />
                 </SelectTrigger>
                 <SelectContent>
@@ -435,7 +445,7 @@ export default function EditProductPage() {
                 value={form.watch("condition")}
                 onValueChange={(value) => form.setValue("condition", value)}
               >
-                <SelectTrigger id="condition">
+                <SelectTrigger id="condition" aria-invalid={!!form.formState.errors.condition}>
                   <SelectValue placeholder="Seleccionar condición" />
                 </SelectTrigger>
                 <SelectContent>
@@ -450,12 +460,12 @@ export default function EditProductPage() {
 
             <Field>
               <FieldLabel htmlFor="carrierLock">Bloqueo de Operadora</FieldLabel>
-              <Input id="carrierLock" {...form.register("carrierLock")} placeholder="ej: Liberado, AT&T, Verizon" />
+              <Input id="carrierLock" aria-invalid={!!form.formState.errors.carrierLock} {...form.register("carrierLock")} placeholder="ej: Liberado, AT&T, Verizon" />
             </Field>
 
             <Field>
               <FieldLabel htmlFor="stock">Stock</FieldLabel>
-              <Input id="stock" type="number" {...form.register("stock")} />
+              <Input id="stock" type="number" aria-invalid={!!form.formState.errors.stock} {...form.register("stock", { valueAsNumber: true })} />
             </Field>
           </CardContent>
         </Card>
@@ -465,14 +475,39 @@ export default function EditProductPage() {
             <CardTitle className="text-lg">Imágenes y Otros</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Field>
-              <FieldLabel htmlFor="images">Imágenes (URLs separadas por coma)</FieldLabel>
-              <Input
-                id="images"
-                {...form.register("images")}
-                placeholder="https://ejemplo.com/img1.jpg, https://ejemplo.com/img2.jpg"
-              />
-            </Field>
+            <div className="space-y-4">
+              <FieldLabel>Imágenes del Producto</FieldLabel>
+              
+              <div className="flex flex-wrap gap-4">
+                <div 
+                  onClick={() => document.getElementById("file-upload")?.click()}
+                  className="w-24 h-24 rounded-xl border-2 border-dashed border-muted-foreground/25 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group"
+                >
+                  <Plus className="size-6 text-muted-foreground group-hover:text-primary" />
+                  <span className="text-[10px] font-medium text-muted-foreground group-hover:text-primary text-center px-1">Nueva</span>
+                  <input
+                    id="file-upload"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                </div>
+
+                <ImagePreview
+                  urls={form.watch("images")?.join(", ") ?? ""}
+                  files={newImages}
+                  onUrlsChange={(newUrls) => {
+                    form.setValue("images", newUrls.split(", ").filter(Boolean));
+                  }}
+                  onFilesChange={(files) => setNewImages(files)}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                Puedes subir archivos locales o gestionar las URLs existentes. Se recomiendan imágenes de 800x800px.
+              </p>
+            </div>
 
             <Field>
               <FieldLabel htmlFor="tags">Etiquetas (separadas por coma)</FieldLabel>

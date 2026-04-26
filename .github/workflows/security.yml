@@ -1,0 +1,60 @@
+name: Security Analysis
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * 1' # Corre todos los lunes a las 00:00
+
+jobs:
+  # Escaneo de vulnerabilidades en el código (SAST)
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript-typescript' ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
+
+  # Auditoría de dependencias
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Audit Frontend
+        run: |
+          cd frontend
+          npm audit --audit-level=high || echo "Vulnerabilidades encontradas en frontend"
+
+      - name: Audit Backend Services
+        run: |
+          for service in auth-ms cart-ms catalog-ms client-gateway; do
+            echo "Auditando $service..."
+            cd backend/$service
+            npm audit --audit-level=high || echo "Vulnerabilidades encontradas en $service"
+            cd ../..
+          done
