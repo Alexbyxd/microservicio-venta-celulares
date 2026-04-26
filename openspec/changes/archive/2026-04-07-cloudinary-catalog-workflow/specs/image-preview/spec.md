@@ -2,13 +2,13 @@
 
 ## Propósito
 
-Permitir al usuario previsualizar miniaturas de URLs de imágenes separadas por coma en tiempo real durante la creación de productos, con manejo de estados de carga, error y opción de移除 imágenes individuales.
+Permitir al usuario previsualizar miniaturas de URLs de imágenes separadas por coma en tiempo real durante la creación de productos, con manejo de estados de carga, error y opción de eliminar imágenes individuales.
 
 ## Requirements
 
 ### Requirement: Renderizado de miniaturas desde URLs separadas por coma
 
-El sistema DEBE renderizar un componente que tome un string de URLs separadas por coma, las parcelas correctamente y renderice miniaturas individuales para cada URL válida.
+El sistema DEBE renderizar un componente que tome un string de URLs separadas por coma, las parsea correctamente y renderice miniaturas individuales para cada URL válida.
 
 El componente DEBE aceptar una prop `urls` de tipo string que contenga cero o más URLs separadas por coma.
 
@@ -59,22 +59,22 @@ Cada miniatura DEBE mostrar un indicador de carga (spinner o skeleton) mientras 
 
 ### Requirement: Botón de eliminación por imagen
 
-El sistema DEBE permitir al usuario eliminar imágenes individuales del preview mediante un botón de移除 en cada miniatura.
+El sistema DEBE permitir al usuario eliminar imágenes individuales del preview mediante un botón de eliminación en cada miniatura.
 
-Cada miniatura renderizada DEBE tener un botón de移除 visible al pasar el cursor sobre la miniatura.
+Cada miniatura renderizada DEBE tener un botón de eliminación visible al pasar el cursor sobre la miniatura.
 
 #### Escenario: Eliminación de una imagen del preview
 
 - GIVEN el componente muestra múltiples miniaturas
-- WHEN el usuario hace clic en el botón de移除 de una miniatura específica
+- WHEN el usuario hace clic en el botón de eliminación de una miniatura específica
 - THEN esa miniatura se elimina del estado interno
-- AND lasminiaturas restantes se actualizan reflejando el cambio
+- AND las miniaturas restantes se actualizan reflejando el cambio
 - AND la prop onChange es llamada con el array actualizado de URLs
 
 #### Escenario: Click en botón de eliminación cuando hay una sola imagen
 
 - GIVEN el componente muestra una única miniatura
-- WHEN el usuario hace clic en el botón de移除
+- WHEN el usuario hace clic en el botón de eliminación
 - THEN el array de URLs se vacía
 - AND onChange es llamado con array vacío
 
@@ -101,7 +101,7 @@ El componente DEBE actualizar el preview en tiempo real (onChange o debounce) co
 - [ ] El componente acepta URLs separadas por coma y las renderiza como miniaturas
 - [ ] Cada miniatura muestra estado de carga mientras carga
 - [ ] Cada miniatura muestra estado de error si la URL es inválida
-- [ ] Cada miniatura tiene botón de移除 funcional
+- [ ] Cada miniatura tiene botón de eliminación funcional
 - [ ] La eliminación de una imagen notifica al componente padre via onChange
 - [ ] El preview actualiza en tiempo real conforme el usuario escribe
 - [ ] El componente maneja gracefully URLs vacías

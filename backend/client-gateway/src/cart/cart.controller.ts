@@ -2,7 +2,7 @@ import { Controller, Get, Post, Patch, Delete, Param, Body, Inject, NotFoundExce
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { CatalogService } from '../catalog/catalog.service';
-import { AddToCartDto, UpdateCartItemDto, UserParamDto } from './dto/cart.dto';
+import { AddToCartDto, UpdateCartItemDto, UserParamDto, RemoveCartItemParamDto } from './dto/cart.dto';
 
 @Controller('cart')
 export class CartController {
@@ -71,10 +71,9 @@ export class CartController {
 
   @Delete(':userId/remove/:productId')
   async removeItem(
-    @Param() params: UserParamDto,
-    @Param('productId') productId: string,
+    @Param() params: RemoveCartItemParamDto,
   ) {
-    const { userId } = params;
+    const { userId, productId } = params;
     try {
       return await firstValueFrom(this.cartClient.send('cart.remove', { userId, productId }));
     } catch (error) {

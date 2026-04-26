@@ -138,7 +138,7 @@ interface ProcessedProductData extends CreateProductDto {
 1. **Backend** (primero): Agregar CloudinaryService, modificar ProductsService.create(), actualizar envs
 2. **Frontend**: Agregar ImagePreview, modificar create page
 3. **Display**: Modificar catalog page para usar CldImage
-4. **Testing**: Agregar框架 de testing, crear tests
+4. **Testing**: Agregar framework de testing, crear tests
 
 **Backward compatibility**: 
 - Productos existentes sin Cloudinary: el display maneja fallback (Smartphone icon)

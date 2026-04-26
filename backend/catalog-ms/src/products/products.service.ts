@@ -33,7 +33,11 @@ export class ProductsService {
         }
       }
 
-      return await this.productModel.find(filter).lean().exec();
+      const MAX_LIMIT = 100;
+      const limit = Math.min(query?.limit !== undefined ? query.limit : 20, MAX_LIMIT);
+      const skip = query?.skip !== undefined ? query.skip : 0;
+
+      return await this.productModel.find(filter).skip(skip).limit(limit).lean().exec();
     } catch (error) {
       throw new RpcException({
         statusCode: 500,
@@ -163,8 +167,9 @@ export class ProductsService {
         if (query.maxPrice !== undefined) filter.price.$lte = query.maxPrice;
       }
 
-      const limit = query.limit || 20;
-      const skip = query.skip || 0;
+      const MAX_LIMIT = 100;
+      const limit = Math.min(query.limit !== undefined ? query.limit : 20, MAX_LIMIT);
+      const skip = query.skip !== undefined ? query.skip : 0;
 
       const [products, total] = await Promise.all([
         this.productModel.find(filter).skip(skip).limit(limit).lean().exec(),

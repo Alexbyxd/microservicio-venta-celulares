@@ -16,7 +16,6 @@ export class CloudinaryService {
 
   isCloudinaryUrl(url: string): boolean {
     if (!url) return false;
-    console.log(url);
     return url.includes('res.cloudinary.com') && url.includes('/image/upload');
   }
 
@@ -64,8 +63,32 @@ export class CloudinaryService {
     return results.filter((url): url is string => url !== null);
   }
 
+  private isValidUrl(url: string): boolean {
+    try {
+      const parsedUrl = new URL(url);
+      const isHttp = parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
+      const hasHostname = parsedUrl.hostname.length > 0;
+      
+      // Evitar localhost y IPs privadas básicas (simplificado)
+      const isLocal = 
+        parsedUrl.hostname === 'localhost' || 
+        parsedUrl.hostname === '127.0.0.1' || 
+        parsedUrl.hostname.startsWith('192.168.') || 
+        parsedUrl.hostname.startsWith('10.');
+
+      return isHttp && hasHostname && !isLocal;
+    } catch {
+      return false;
+    }
+  }
+
   async uploadFromUrl(imageUrl: string): Promise<string> {
     if (this.isCloudinaryUrl(imageUrl)) return imageUrl;
+
+    if (!this.isValidUrl(imageUrl)) {
+      this.logger.warn(`URL de imagen inválida o potencialmente peligrosa bloqueada: ${imageUrl}`);
+      return imageUrl;
+    }
 
     if (
       !envs.cloudinary.cloudName ||

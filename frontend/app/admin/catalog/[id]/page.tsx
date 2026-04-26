@@ -254,6 +254,8 @@ export default function EditProductPage() {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files);
       setNewImages((prev) => [...prev, ...filesArray]);
+      // Reset input value to allow selecting the same file again
+      e.target.value = "";
     }
   };
 
@@ -494,7 +496,7 @@ export default function EditProductPage() {
                 </div>
 
                 <ImagePreview
-                  urls={form.watch("images")?.join(", ")}
+                  urls={form.watch("images")?.join(", ") ?? ""}
                   files={newImages}
                   onUrlsChange={(newUrls) => {
                     form.setValue("images", newUrls.split(", ").filter(Boolean));

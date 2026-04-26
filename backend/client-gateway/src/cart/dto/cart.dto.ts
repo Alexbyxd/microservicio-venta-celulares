@@ -1,8 +1,7 @@
 import { IsString, IsNumber, Min, IsNotEmpty, IsMongoId } from 'class-validator';
 
 export class AddToCartDto {
-  @IsString()
-  @IsNotEmpty()
+  @IsMongoId({ message: 'ProductId debe ser un formato MongoID válido' })
   productId: string;
 
   @IsNumber()
@@ -11,8 +10,7 @@ export class AddToCartDto {
 }
 
 export class UpdateCartItemDto {
-  @IsString()
-  @IsNotEmpty()
+  @IsMongoId({ message: 'ProductId debe ser un formato MongoID válido' })
   productId: string;
 
   @IsNumber()
@@ -23,4 +21,9 @@ export class UpdateCartItemDto {
 export class UserParamDto {
   @IsMongoId({ message: 'UserId debe ser un formato MongoID válido' })
   userId: string;
+}
+
+export class RemoveCartItemParamDto extends UserParamDto {
+  @IsMongoId({ message: 'ProductId debe ser un formato MongoID válido' })
+  productId: string;
 }

@@ -18,7 +18,14 @@ export class CartService {
     if (!data) {
       return { userId, items: [], totalAmount: 0, updatedAt: Date.now() };
     }
-    return JSON.parse(data);
+    
+    try {
+      return JSON.parse(data);
+    } catch (error) {
+      this.logger.error(`Error parseando carrito de usuario ${userId}: ${error.message}. Limpiando datos corruptos.`);
+      await this.redisClient.del(this.getCartKey(userId));
+      return { userId, items: [], totalAmount: 0, updatedAt: Date.now() };
+    }
   }
 
   async addItem(userId: string, item: CartItem): Promise<ShoppingCart> {

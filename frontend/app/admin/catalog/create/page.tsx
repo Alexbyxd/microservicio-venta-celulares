@@ -264,7 +264,7 @@ export default function CreateProductPage() {
             <ImagePreview 
               files={localFiles} 
               onFilesChange={setLocalFiles}
-              urls={form.watch("images")?.join(", ")}
+              urls={form.watch("images")?.join(", ") ?? ""}
               onUrlsChange={(v) => form.setValue("images", v.split(", ").filter(Boolean))}
             />
 
@@ -273,7 +273,7 @@ export default function CreateProductPage() {
               <Input 
                 className="bg-white/5 border-white/10" 
                 placeholder="https://..." 
-                value={form.watch("images")?.join(", ")}
+                value={form.watch("images")?.join(", ") ?? ""}
                 onChange={(e) => form.setValue("images", e.target.value.split(",").map(i => i.trim()).filter(Boolean))}
               />
             </Field>
@@ -285,7 +285,7 @@ export default function CreateProductPage() {
           <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Field>
               <FieldLabel className="text-white/60">Procesador</FieldLabel>
-              <Select onValueChange={(v) => form.setValue("specifications.processor", v)}>
+              <Select value={form.watch("specifications.processor")} onValueChange={(v) => form.setValue("specifications.processor", v)}>
                 <SelectTrigger className="bg-white/5 border-white/10"><SelectValue placeholder="Chipset" /></SelectTrigger>
                 <SelectContent className="bg-black/95 border-white/10 text-white">
                   {options.processor.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
@@ -294,7 +294,7 @@ export default function CreateProductPage() {
             </Field>
             <Field>
               <FieldLabel className="text-white/60">RAM</FieldLabel>
-              <Select onValueChange={(v) => form.setValue("ram", v)}>
+              <Select value={form.watch("ram")} onValueChange={(v) => form.setValue("ram", v)}>
                 <SelectTrigger className="bg-white/5 border-white/10"><SelectValue placeholder="Memoria" /></SelectTrigger>
                 <SelectContent className="bg-black/95 border-white/10 text-white">
                   {options.ram.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
@@ -303,7 +303,7 @@ export default function CreateProductPage() {
             </Field>
             <Field>
               <FieldLabel className="text-white/60">Almacenamiento</FieldLabel>
-              <Select onValueChange={(v) => form.setValue("storage", v)}>
+              <Select value={form.watch("storage")} onValueChange={(v) => form.setValue("storage", v)}>
                 <SelectTrigger className="bg-white/5 border-white/10"><SelectValue placeholder="Capacidad" /></SelectTrigger>
                 <SelectContent className="bg-black/95 border-white/10 text-white">
                   {options.storage.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}

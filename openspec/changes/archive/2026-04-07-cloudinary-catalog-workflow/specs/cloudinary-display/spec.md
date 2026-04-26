@@ -29,7 +29,7 @@ El componente DEBE usar las siguientes props: width=48, height=48, crop="fill".
 
 - GIVEN un producto no tiene imágenes o el array está vacío
 - WHEN se renderiza la celda de imagen
-- THEN se muestra el fallback actual (ícono de Smartphone en un div灰色)
+- THEN se muestra el fallback actual (ícono de Smartphone en un div gris)
 
 ### Requirement: Configuración de cloud name
 
@@ -59,9 +59,9 @@ CldImage DEBE tener un handler de onError que muestre el fallback actual (ícono
 
 - GIVEN un producto tiene una URL de Cloudinary que no existe
 - WHEN CldImage falla al cargar
-- THEN se muestra el fallback (ícono de Smartphone con fondo灰色)
+- THEN se muestra el fallback (ícono de Smartphone con fondo gris)
 
-#### Escenario: Fallback visual的一致性
+#### Escenario: Consistencia visual del fallback
 
 - GIVEN no hay imagen disponible (vacio o error)
 - WHEN se renderiza la celda
