@@ -28,7 +28,7 @@ export function ImagePreview({
   disabled = false,
 }: ImagePreviewProps) {
   const [imageStatuses, setImageStatuses] = useState<Record<string, "loading" | "loaded" | "error">>({});
-  const createdUrlsRef = useRef<Map<File, string>>(new Map());
+  const [fileUrls, setFileUrls] = useState<Map<File, string>>(new Map());
 
   const revokeUrl = useCallback((url: string) => {
     if (url.startsWith("blob:")) URL.revokeObjectURL(url);
@@ -36,29 +36,40 @@ export function ImagePreview({
 
   useEffect(() => {
     const currentFiles = new Set(files);
-    const newCreatedUrls = new Map<File, string>();
+    
+    const timeoutId = setTimeout(() => {
+      setFileUrls(prev => {
+        const next = new Map(prev);
+        let changed = false;
 
-    createdUrlsRef.current.forEach((url, file) => {
-      if (!currentFiles.has(file)) {
-        revokeUrl(url);
-      } else {
-        newCreatedUrls.set(file, url);
-      }
-    });
+        // Revoke and remove
+        for (const [file, url] of prev.entries()) {
+          if (!currentFiles.has(file)) {
+            revokeUrl(url);
+            next.delete(file);
+            changed = true;
+          }
+        }
 
-    files.forEach((file) => {
-      if (!newCreatedUrls.has(file)) {
-        newCreatedUrls.set(file, URL.createObjectURL(file));
-      }
-    });
+        // Add new ones
+        for (const file of files) {
+          if (!next.has(file)) {
+            next.set(file, URL.createObjectURL(file));
+            changed = true;
+          }
+        }
 
-    createdUrlsRef.current = newCreatedUrls;
+        return changed ? next : prev;
+      });
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
   }, [files, revokeUrl]);
 
   const images = useMemo(() => {
     const fileItems: ImageItem[] = files.map((file, index) => ({
       id: `file-${index}-${file.name}`,
-      url: createdUrlsRef.current.get(file) || "",
+      url: fileUrls.get(file) || "",
       status: "loaded" as const,
       type: "file" as const,
       file,
@@ -76,11 +87,17 @@ export function ImagePreview({
     }));
 
     return [...fileItems, ...urlItems];
-  }, [files, urls, imageStatuses]);
+  }, [files, urls, imageStatuses, fileUrls]);
+
+  // Keep a ref to the latest fileUrls for cleanup on unmount
+  const fileUrlsRef = useRef(fileUrls);
+  useEffect(() => {
+    fileUrlsRef.current = fileUrls;
+  }, [fileUrls]);
 
   useEffect(() => {
     return () => {
-      createdUrlsRef.current.forEach((url) => revokeUrl(url));
+      fileUrlsRef.current.forEach((url) => revokeUrl(url));
     };
   }, [revokeUrl]);
 
